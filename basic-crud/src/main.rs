@@ -2,15 +2,13 @@ use axum:: {
     extract::{Path, State},
     http::StatusCode,
     routing::{delete, get, patch, post},
-    Json, Router
+    Json, Router, ServiceExt
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::{Sqlite, SqlitePool};
 use uuid::Uuid;
 use std::net::SocketAddr;
-
-mod config;
 
 mod models;
 use models::{CreateTask, Task};
@@ -19,21 +17,24 @@ const SCHEMA: &str = include_str!("../schema.sql");
 
 #[tokio::main]
 async fn main () {
-    let pool = SqlitePool::connect(config::DATABASE_URL).await.unwrap();
+    let data_url = std::env::var("DATABASE_URL").expect("DATABASE_URL not found in env file");
+
+    let pool = SqlitePool::connect(&data_url).await.unwrap();
 
     sqlx::query(SCHEMA).execute(&pool).await.unwrap();
 
     let app = Router::new()
-            .route("/", get(hello))
-            .route("/tasks", get(get_tasks))
-            .route("/tasks", post(create_task));
+        .route("/", get(hello))
+        .route("/tasks", get(get_tasks).post(create_task))
+        .with_state(pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 
     println!("listening on {}" , addr);
 
-    axum::Server::bind(&addr).serve(app.into_make_service()).await.unwrap();
-
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+        .await.unwrap();
 }
 
 async fn hello () -> &'static str {
@@ -44,14 +45,14 @@ async fn create_task (
     Json(task): Json<CreateTask>,
     State(pool): State<SqlitePool>
 ) -> Result<(StatusCode, String), (StatusCode, String)>{
-    let id = Uuid::new_v4();
-    let result = sqlx::query!(
-        r#"INSERT INTO task(id, title, completed) VALUES(?1, ?2, ?3)"#,
-        id.to_string(),
+    let id = Uuid::new_v4().to_string();
+    sqlx::query!(
+        r#"INSERT INTO tasks(id, title, completed) VALUES(?1, ?2, ?3)"#,
+        id,
         task.title, 
         task.completed,
     )
-    .fetch_one(&pool)
+    .execute(&pool)
     .await
     .map_err(|e| {
         (
@@ -68,7 +69,6 @@ async fn create_task (
         StatusCode::CREATED,
         json!({
             "success": true, 
-            "data": result,
             "message": "Create task success"
         }).to_string(),
     ))
@@ -80,7 +80,7 @@ async fn get_tasks (
 ) -> Result<(StatusCode, String), (StatusCode, String)> {
     let result = sqlx::query_as!(
         Task,
-        "SELECT * FROM tasks"
+        r#"SELECT id as "id?", title, completed FROM tasks"#
     ).fetch_all(&pool)
     .await
     .map_err(|e| {

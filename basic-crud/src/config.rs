@@ -1,1 +1,0 @@
-pub const DATABASE_URL: &str = "sqlite:data.db"; 
