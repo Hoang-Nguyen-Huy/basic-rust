@@ -1,6 +1,8 @@
 [workspace]
+resolver = "2"
 
 members = [ 
+    "basic-crud", 
     "generate-random-number",
     "hello-world"
 ]
