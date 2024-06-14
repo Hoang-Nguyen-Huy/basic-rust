@@ -28,6 +28,8 @@ cargo run --bin basic-crud
 
 ### a. GET all tasks
 
+<img width="887" alt="Screen Shot 2024-06-14 at 15 24 33" src="https://github.com/Hoang-Nguyen-Huy/basic-rust/assets/121879570/39f77022-e0ee-44e8-8931-b0786ba8f94c">
+
 ```
 http://localhost:3000/tasks
 ```
