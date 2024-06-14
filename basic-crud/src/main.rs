@@ -27,7 +27,7 @@ async fn main () {
     let app = Router::new()
         .route("/", get(hello))
         .route("/tasks", get(get_tasks).post(create_task))
-        .route("/tasks/:id", get(get_task_by_id))
+        .route("/tasks/:id", get(get_task_by_id).delete(delete_task))
         .with_state(pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -134,6 +134,36 @@ async fn get_task_by_id(
             "success": true, 
             "data": result,
             "message": "Get tasks success"
+        }).to_string(),
+    ))
+}
+
+async fn delete_task (
+    State(pool): State<SqlitePool>,
+    Path(id): Path<String>
+) -> Result<(StatusCode, String), (StatusCode, String)> {
+    sqlx::query!(
+        r#"DELETE FROM tasks WHERE id = ?1"#,
+        id
+    ).execute(&pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            json!({
+                "success": false,
+                "data": null,
+                "message": e.to_string(),
+            }).to_string(),
+        )
+    })?;
+
+    Ok((
+        StatusCode::OK,
+        json!({
+            "success": true,
+            "data": null,
+            "message": "Delete task successful"
         }).to_string(),
     ))
 }
