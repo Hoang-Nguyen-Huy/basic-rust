@@ -67,6 +67,14 @@ http://localhost:3000/tasks/:id
 http://localhost:3000/tasks/:id
 ```
 
+### e. PUT task
+
+<img width="848" alt="Screen Shot 2024-06-14 at 16 19 57" src="https://github.com/Hoang-Nguyen-Huy/basic-rust/assets/121879570/701a986c-cae4-48dd-951e-a984317bfef2">
+
+```
+http://localhost:3000/tasks/:id
+```
+
 
 
 
