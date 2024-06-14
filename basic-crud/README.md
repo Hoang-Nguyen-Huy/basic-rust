@@ -59,6 +59,14 @@ paste this into your request body
 http://localhost:3000/tasks/:id
 ```
 
+### d. DELETE task
+
+<img width="837" alt="Screen Shot 2024-06-14 at 15 55 48" src="https://github.com/Hoang-Nguyen-Huy/basic-rust/assets/121879570/31ef1c46-1c95-4c8b-a0c5-06f3b294e630">
+
+```
+http://localhost:3000/tasks/:id
+```
+
 
 
 
