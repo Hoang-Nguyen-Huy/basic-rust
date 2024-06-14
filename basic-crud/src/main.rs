@@ -11,7 +11,7 @@ use uuid::Uuid;
 use std::net::SocketAddr;
 
 mod models;
-use models::{CreateTask, Task};
+use models::{CreateTask, Task, UpdateTask};
 
 const SCHEMA: &str = include_str!("../schema.sql");
 
@@ -27,7 +27,7 @@ async fn main () {
     let app = Router::new()
         .route("/", get(hello))
         .route("/tasks", get(get_tasks).post(create_task))
-        .route("/tasks/:id", get(get_task_by_id).delete(delete_task))
+        .route("/tasks/:id", get(get_task_by_id).delete(delete_task).put(update_task))
         .with_state(pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -164,6 +164,58 @@ async fn delete_task (
             "success": true,
             "data": null,
             "message": "Delete task successful"
+        }).to_string(),
+    ))
+}
+
+async fn update_task (
+    State(pool): State<SqlitePool>,
+    Path(id): Path<String>,
+    Json(task): Json<UpdateTask>
+) -> Result<(StatusCode, String), (StatusCode, String)> {
+    let mut query = "UPDATE tasks SET ".to_owned();
+
+    let mut i = 2;
+
+    if task.title.is_some() {
+        query.push_str(&format!("title = ?{i}"));
+        i = i + 1;
+    }
+
+    if task.completed.is_some() {
+        query.push_str(&format!(", completed = ?{i}"));
+    }
+
+    query.push_str(&format!(" WHERE id = ?1"));
+
+    let mut start = sqlx::query(&query).bind(id);
+
+    if task.title.is_some() {
+        start = start.bind(task.title);
+    }
+
+    if task.completed.is_some() {
+        start = start.bind(task.completed);
+    }
+
+    start.execute(&pool).await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                json!({
+                    "success": false, 
+                    "data": null,
+                    "message": e.to_string(),
+                }).to_string(),
+            )
+        })?;
+   
+    Ok((
+        StatusCode::OK,
+        json!({
+            "success": true,
+            "data": null,
+            "message": "Update task successful"
         }).to_string(),
     ))
 }
