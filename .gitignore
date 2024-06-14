@@ -59,3 +59,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 
 data.db 
+data.db-shm
+data.db-wal

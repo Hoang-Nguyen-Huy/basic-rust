@@ -1,12 +1,12 @@
 use axum:: {
-    extract::{Path, State},
+    extract::State,
     http::StatusCode,
-    routing::{delete, get, patch, post},
-    Json, Router, ServiceExt
+    routing::get,
+    Json, Router,
 };
-use serde::{Deserialize, Serialize};
+// use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::{Sqlite, SqlitePool};
+use sqlx::SqlitePool;
 use uuid::Uuid;
 use std::net::SocketAddr;
 
@@ -17,6 +17,7 @@ const SCHEMA: &str = include_str!("../schema.sql");
 
 #[tokio::main]
 async fn main () {
+    dotenvy::dotenv().expect("Unable to access .env file");
     let data_url = std::env::var("DATABASE_URL").expect("DATABASE_URL not found in env file");
 
     let pool = SqlitePool::connect(&data_url).await.unwrap();
@@ -42,8 +43,8 @@ async fn hello () -> &'static str {
 }
 
 async fn create_task (
-    Json(task): Json<CreateTask>,
-    State(pool): State<SqlitePool>
+    State(pool): State<SqlitePool>,
+    Json(task): Json<CreateTask>
 ) -> Result<(StatusCode, String), (StatusCode, String)>{
     let id = Uuid::new_v4().to_string();
     sqlx::query!(
@@ -69,6 +70,7 @@ async fn create_task (
         StatusCode::CREATED,
         json!({
             "success": true, 
+            "data": null,
             "message": "Create task success"
         }).to_string(),
     ))
