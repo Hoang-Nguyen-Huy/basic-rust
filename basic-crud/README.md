@@ -51,6 +51,15 @@ paste this into your request body
 }
 ```
 
+### c. GET task
+
+<img width="854" alt="Screen Shot 2024-06-14 at 15 43 32" src="https://github.com/Hoang-Nguyen-Huy/basic-rust/assets/121879570/a8270502-c4d6-45cb-a811-51b0d3423959">
+
+```
+http://localhost:3000/tasks/:id
+```
+
+
 
 
 
