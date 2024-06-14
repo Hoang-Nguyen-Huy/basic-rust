@@ -1,5 +1,5 @@
 use axum:: {
-    extract::State,
+    extract::{Path, State},
     http::StatusCode,
     routing::get,
     Json, Router,
@@ -27,6 +27,7 @@ async fn main () {
     let app = Router::new()
         .route("/", get(hello))
         .route("/tasks", get(get_tasks).post(create_task))
+        .route("/tasks/:id", get(get_task_by_id))
         .with_state(pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -95,6 +96,37 @@ async fn get_tasks (
             }).to_string(),
         )
     })?;
+
+    Ok((
+        StatusCode::OK,
+        json!({
+            "success": true, 
+            "data": result,
+            "message": "Get tasks success"
+        }).to_string(),
+    ))
+}
+
+async fn get_task_by_id(
+    State(pool): State<SqlitePool>,
+    Path(id): Path<String>
+) -> Result<(StatusCode, String), (StatusCode, String)> {
+    let result = sqlx::query_as!(
+            Task,
+            r#"SELECT id as "id?", title, completed FROM tasks WHERE id = ?1"#,
+            id
+        ).fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                json!({
+                    "success": false,
+                    "data": null,
+                    "message": e.to_string()
+                }).to_string(),
+            )
+        })?;
 
     Ok((
         StatusCode::OK,
