@@ -12,6 +12,8 @@ cd basic-rust
 
 ## 2. Set up
 
+paste this to your .env file
+
 ```
 DATABASE_URL=sqlite:data.db
 ```
@@ -32,6 +34,8 @@ http://localhost:3000/tasks
 
 ### b. POST task
 
+<img width="890" alt="Screen Shot 2024-06-14 at 15 21 11" src="https://github.com/Hoang-Nguyen-Huy/basic-rust/assets/121879570/b7d41c89-d1d0-474a-9ab0-8eeb9260d6c2">
+
 ```
 http://localhost:3000/tasks
 ```
@@ -44,6 +48,7 @@ paste this into your request body
     "completed": false
 }
 ```
+
 
 
 
